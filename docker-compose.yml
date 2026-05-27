@@ -51,18 +51,24 @@ services:
     networks:
       - what-food-network
 
-  user-product-service:
-    image: gopherkhb/what-food-user-product-service:latest
-    container_name: what-food-user-product-service
-    restart: always
-    env_file:
-      - ./user-product-service/.env
-    depends_on:
-      - postgres
-      - redis
-      - rabbitmq
-    networks:
-      - what-food-network
+user-product-service:
+  image: gopherkhb/what-food-user-product-service:latest
+  container_name: what-food-user-product-service
+  restart: always
+
+  env_file:
+    - ./user-product-service/.env
+
+  volumes:
+    - ./user-product-service/migrations:/app/migrations  # 🔥 SHU MUHIM
+
+  depends_on:
+    - postgres
+    - redis
+    - rabbitmq
+
+  networks:
+    - what-food-network
 
   notification-service:
     image: gopherkhb/what-food-notifaction-service:latest
