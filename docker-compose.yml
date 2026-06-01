@@ -171,9 +171,9 @@ services:
     networks:
       - what-food-network
 
-  api-gateway:
+  api-geteway:
     image: gopherkhb/what-food-api-gateway:latest
-    container_name: what-food-api-gateway
+    container_name: what-food-api-geteway
     restart: always
     env_file:
       - ./api-geteway/.env
