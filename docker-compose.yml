@@ -176,7 +176,7 @@ services:
     container_name: what-food-api-gateway
     restart: always
     env_file:
-      - ./api-gateway/.env
+      - ./api-geteway/.env
     depends_on:
       auth-service:
         condition: service_started
