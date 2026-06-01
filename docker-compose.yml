@@ -1,20 +1,27 @@
-
-
 services:
   postgres:
     image: postgres:17
     container_name: what-food-postgres
     restart: always
+
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: secret
-      POSTGRES_DB: statik_service
+
     ports:
       - "5433:5432"
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
     networks:
       - what-food-network
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:8-alpine
@@ -45,9 +52,12 @@ services:
     env_file:
       - ./user-service/.env
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
     networks:
       - what-food-network
 
@@ -58,22 +68,28 @@ services:
     env_file:
       - ./user-product-service/.env
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
     networks:
       - what-food-network
 
   notification-service:
-    image: gopherkhb/what-food-notifaction-service:latest
+    image: gopherkhb/what-food-notification-service:latest
     container_name: what-food-notification-service
     restart: always
     env_file:
       - ./notification-service/.env
     depends_on:
-      - rabbitmq
-      - redis
-      - postgres
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
     networks:
       - what-food-network
 
@@ -84,9 +100,12 @@ services:
     env_file:
       - ./auth-service/.env
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
     networks:
       - what-food-network
 
@@ -97,9 +116,12 @@ services:
     env_file:
       - ./food-service/.env
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
     networks:
       - what-food-network
 
@@ -110,9 +132,12 @@ services:
     env_file:
       - ./ai-service/.env
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
     networks:
       - what-food-network
 
@@ -123,9 +148,12 @@ services:
     env_file:
       - ./analytics-service/.env
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
     networks:
       - what-food-network
 
@@ -136,26 +164,36 @@ services:
     env_file:
       - ./mail-service/.env
     depends_on:
-      - rabbitmq
-      - redis
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_started
     networks:
       - what-food-network
 
   api-gateway:
-    image: gopherkhb/what-food-api-geteway:latest
+    image: gopherkhb/what-food-api-gateway:latest
     container_name: what-food-api-gateway
     restart: always
     env_file:
-      - ./api-geteway/.env
+      - ./api-gateway/.env
     depends_on:
-      - auth-service
-      - user-service
-      - user-product-service
-      - food-service
-      - ai-service
-      - analytics-service
-      - notification-service
-      - mail-service
+      auth-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      user-product-service:
+        condition: service_started
+      food-service:
+        condition: service_started
+      ai-service:
+        condition: service_started
+      analytics-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      mail-service:
+        condition: service_started
     ports:
       - "8082:8082"
     networks:
