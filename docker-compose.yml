@@ -7,60 +7,22 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: secret
+      POSTGRES_MULTIPLE_DATABASES: user_service,user_product_service,food_service,statik_service
 
     ports:
       - "5433:5432"
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
 
     networks:
       - what-food-network
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres && psql -U postgres -c 'SELECT 1'"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 30s
-
-  redis:
-    image: redis:8-alpine
-    container_name: what-food-redis
-    restart: always
-
-    ports:
-      - "6380:6379"
-
-    networks:
-      - what-food-network
-
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
-  rabbitmq:
-    image: rabbitmq:4-management
-    container_name: what-food-rabbitmq
-    restart: always
-
-    ports:
-      - "5673:5672"
-      - "15673:15672"
-
-    environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: secret
-
-    networks:
-      - what-food-network
-
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 10s
-      timeout: 10s
       retries: 10
       start_period: 30s
 
@@ -68,18 +30,11 @@ services:
     image: gopherkhb/what-food-user-service:latest
     container_name: what-food-user-service
     restart: always
-
     env_file:
       - ./user-service/.env
-
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-
     networks:
       - what-food-network
 
@@ -87,18 +42,11 @@ services:
     image: gopherkhb/what-food-user-product-service:latest
     container_name: what-food-user-product-service
     restart: always
-
     env_file:
       - ./user-product-service/.env
-
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-
     networks:
       - what-food-network
 
@@ -106,18 +54,11 @@ services:
     image: gopherkhb/what-food-auth-service:latest
     container_name: what-food-auth-service
     restart: always
-
     env_file:
       - ./auth-service/.env
-
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-
     networks:
       - what-food-network
 
@@ -125,18 +66,11 @@ services:
     image: gopherkhb/what-food-food-service:latest
     container_name: what-food-food-service
     restart: always
-
     env_file:
       - ./food-service/.env
-
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-
     networks:
       - what-food-network
 
@@ -144,18 +78,11 @@ services:
     image: gopherkhb/what-food-ai-service:latest
     container_name: what-food-ai-service
     restart: always
-
     env_file:
       - ./ai-service/.env
-
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-
     networks:
       - what-food-network
 
@@ -163,18 +90,11 @@ services:
     image: gopherkhb/what-food-analytics-service:latest
     container_name: what-food-analytics-service
     restart: always
-
     env_file:
       - ./analytics-service/.env
-
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-
     networks:
       - what-food-network
 
@@ -182,16 +102,8 @@ services:
     image: gopherkhb/what-food-mail-service:latest
     container_name: what-food-mail-service
     restart: always
-
     env_file:
       - ./mail-service/.env
-
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
     networks:
       - what-food-network
 
@@ -199,18 +111,11 @@ services:
     image: gopherkhb/what-food-notifaction-service:latest
     container_name: what-food-notification-service
     restart: always
-
     env_file:
       - ./notification-service/.env
-
     depends_on:
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
       postgres:
         condition: service_healthy
-
     networks:
       - what-food-network
 
